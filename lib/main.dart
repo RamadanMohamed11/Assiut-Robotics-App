@@ -106,7 +106,7 @@ class MyApp extends StatelessWidget {
                   // home: RequestedComponentsPage(),
                 );
               },
-            );
+            ); //test
           } else {
             return ScreenUtilInit(
               builder: (_, child) {
