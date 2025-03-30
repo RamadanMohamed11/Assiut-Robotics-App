@@ -4,6 +4,7 @@ import 'package:robotics_app/colors.dart';
 import 'package:robotics_app/models/profile_model.dart';
 import 'package:robotics_app/pages/borrow_component_page.dart';
 import 'package:robotics_app/pages/get_component_page.dart';
+import 'package:robotics_app/pages/manage_component_page.dart';
 import 'package:robotics_app/pages/requested_components_page.dart';
 import 'package:robotics_app/pages/search_page.dart';
 import 'package:robotics_app/widgets/custom_drawer.dart';
@@ -50,15 +51,16 @@ class _ComponentsPageState extends State<ComponentsPage> {
   @override
   Widget build(BuildContext context) {
     Map<String, dynamic> pages = {
-      "All": GetComponentPage(token: widget.profileModel.token),
+      "All": GetComponentPage(profileModel: widget.profileModel),
       "Requested": RequestedComponentsPage(token: widget.profileModel.token),
       "Borrowed": BorrowComponentPage(token: widget.profileModel.token),
+      "Manage": ManageComponentPage(token: widget.profileModel.token),
     };
     void onPressedSearchIcon() {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => SearchPage(token: widget.profileModel.token),
+          builder: (context) => SearchPage(profileModel: widget.profileModel),
         ),
       );
     }

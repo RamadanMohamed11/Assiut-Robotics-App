@@ -5,23 +5,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:robotics_app/colors.dart';
 import 'package:robotics_app/models/component_model.dart';
+import 'package:robotics_app/models/profile_model.dart';
 import 'package:robotics_app/pages/search_page.dart';
 import 'package:robotics_app/services/get_component.dart';
 import 'package:robotics_app/widgets/component_widget.dart';
-import 'package:robotics_app/widgets/custom_drawer.dart';
 import 'package:robotics_app/widgets/moving_logo.dart';
 
 class GetComponentPage extends StatefulWidget {
   const GetComponentPage({
     super.key,
-    required this.token,
     this.searchText,
     this.isFound,
+    required this.profileModel,
   });
 
   final String? searchText;
   final bool? isFound;
-  final String token;
+  final ProfileModel profileModel;
 
   @override
   GetComponentPageState createState() => GetComponentPageState();
@@ -47,7 +47,9 @@ class GetComponentPageState extends State<GetComponentPage>
   void onPressedSearchIcon() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => SearchPage(token: widget.token)),
+      MaterialPageRoute(
+        builder: (context) => SearchPage(profileModel: widget.profileModel),
+      ),
     );
   }
 
@@ -203,7 +205,7 @@ class GetComponentPageState extends State<GetComponentPage>
                       itemBuilder: (context, index) {
                         return ComponentWidget(
                           component: paginatedComponents[index],
-                          token: widget.token,
+                          profileModel: widget.profileModel,
                         );
                       },
                     ),

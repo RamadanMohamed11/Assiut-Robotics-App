@@ -4,7 +4,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:robotics_app/models/profile_model.dart';
 import 'package:robotics_app/pages/home_page.dart';
 import 'package:robotics_app/pages/home_page_after_login.dart';
-import 'package:robotics_app/pages/requested_components_page.dart';
 import 'package:robotics_app/pages/waiting_page_at_first.dart';
 import 'package:robotics_app/services/is_verified_account.dart';
 import 'package:robotics_app/services/login_service.dart';

@@ -6,6 +6,22 @@ import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 
 class API {
+  static Future<dynamic> postMultipart({
+    required String endpoint,
+    required Map<String, String> files,
+  }) async {
+    // Implement the logic for sending a multipart POST request
+    // For example, using the 'http' package:
+    final request = http.MultipartRequest('POST', Uri.parse(endpoint));
+    files.forEach((key, value) async {
+      request.files.add(await http.MultipartFile.fromPath(key, value));
+    });
+    final response = await request.send();
+    return response;
+
+    // throw UnimplementedError('postMultipart method is not implemented yet.');
+  }
+
   Future<Map<String, dynamic>> get({required String url, String? token}) async {
     Map<String, String> headers = {
       "Content-Type": "application/x-www-form-urlencoded",

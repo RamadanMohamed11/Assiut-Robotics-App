@@ -1,16 +1,46 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive/hive.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:robotics_app/colors.dart';
 import 'package:robotics_app/helper/show_dialog.dart';
 import 'package:robotics_app/models/profile_model.dart';
 import 'package:robotics_app/pages/home_page.dart';
+import 'package:robotics_app/services/change_image.dart';
+import 'package:robotics_app/services/login_service.dart';
 
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key, required this.profileModel});
+class ProfilePage extends StatefulWidget {
+  ProfilePage({super.key, required this.profileModel});
   static const String id = 'ProfilePage';
-  final ProfileModel profileModel;
+  ProfileModel profileModel;
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  bool isLoading = false;
+  // ✅ Function to Pick Image & Upload
+  Future<bool> uploadProfileImage(String token) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pickedFile == null) {
+      print('❌ No image selected');
+      return false;
+    }
+
+    File imageFile = File(pickedFile.path);
+    await ProfileService().changeProfileImage(imageFile, token);
+
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,39 +98,107 @@ class ProfilePage extends StatelessWidget {
                         ),
                         SizedBox(height: 25.h),
                         Center(
-                          child: CircleAvatar(
-                            radius: 83.r,
-                            backgroundColor: kOrangeColor,
-
-                            child: CircleAvatar(
-                              backgroundColor: Colors.transparent,
-                              radius: 80.r,
-
-                              child: CachedNetworkImage(
-                                imageUrl: profileModel.profileImage,
-                                placeholder:
-                                    (context, url) => Image.asset(
-                                      'assets/images/Rob.png',
-                                      fit: BoxFit.cover,
-                                    ), // Loading effect
-                                errorWidget:
-                                    (context, url, error) => Icon(
-                                      Icons.error,
-                                      color: Colors.red,
-                                      size: 40.sp,
-                                    ), // Error widget
-                                imageBuilder:
-                                    (context, imageProvider) => CircleAvatar(
-                                      radius: 80.r,
-                                      backgroundImage: imageProvider,
-                                    ),
+                          child: Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              CircleAvatar(
+                                radius: 83.r,
+                                backgroundColor: kOrangeColor,
+                                child: CircleAvatar(
+                                  backgroundColor: Colors.transparent,
+                                  radius: 80.r,
+                                  child:
+                                      isLoading
+                                          ? CircularProgressIndicator(
+                                            backgroundColor: kOrangeColor,
+                                            color: Colors.white,
+                                            strokeWidth: 4.w,
+                                          )
+                                          : CachedNetworkImage(
+                                            imageUrl:
+                                                widget
+                                                    .profileModel
+                                                    .profileImage,
+                                            placeholder:
+                                                (context, url) => Image.asset(
+                                                  'assets/images/Rob.png',
+                                                  fit: BoxFit.cover,
+                                                ), // Loading effect
+                                            errorWidget:
+                                                (context, url, error) => Icon(
+                                                  Icons.error,
+                                                  color: Colors.red,
+                                                  size: 40.sp,
+                                                ), // Error widget
+                                            imageBuilder:
+                                                (context, imageProvider) =>
+                                                    CircleAvatar(
+                                                      radius: 80.r,
+                                                      backgroundImage:
+                                                          imageProvider,
+                                                    ),
+                                          ),
+                                ),
                               ),
-                            ),
+                              GestureDetector(
+                                onTap: () async {
+                                  isLoading = true;
+                                  setState(() {});
+                                  try {
+                                    bool isImageChanged =
+                                        await uploadProfileImage(
+                                          widget.profileModel.token,
+                                        );
+                                    if (isImageChanged) {
+                                      final box = Hive.box('userData');
+                                      String userToken = box.get(
+                                        "token",
+                                        defaultValue: "",
+                                      );
+                                      dynamic data = await LoginService().login(
+                                        email: box.get("email"),
+                                        password: box.get("password"),
+                                      );
+                                      widget.profileModel =
+                                          ProfileModel.fromJson(data["data"]);
+                                      setState(() {});
+
+                                      showMessageDialog(
+                                        context,
+                                        true,
+                                        false,
+                                        "Image changed successfully",
+                                        btnOkOnPress: () {},
+                                      );
+                                    }
+                                  } catch (e) {
+                                    showMessageDialog(
+                                      context,
+                                      false,
+                                      false,
+                                      "Failed to change the image: ${e.toString().replaceFirst('Exception: ', '')}",
+                                      btnOkOnPress: () {},
+                                    );
+                                  }
+                                  isLoading = false;
+                                  setState(() {});
+                                },
+                                child: CircleAvatar(
+                                  radius: 20.r,
+                                  backgroundColor: Colors.white,
+                                  child: Icon(
+                                    Icons.camera_alt_rounded,
+                                    color: kPrimarycolor1,
+                                    size: 22.sp,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         Center(
                           child: Text(
-                            profileModel.name,
+                            widget.profileModel.name,
                             style: TextStyle(
                               fontSize: 22.sp,
                               color: Colors.white,
@@ -111,7 +209,7 @@ class ProfilePage extends StatelessWidget {
                         ),
                         Center(
                           child: Text(
-                            profileModel.role,
+                            widget.profileModel.role,
                             style: TextStyle(
                               fontSize: 20.sp,
                               color: Colors.white,
@@ -229,7 +327,7 @@ class ProfilePage extends StatelessWidget {
 
                         Center(
                           child: Text(
-                            profileModel.email,
+                            widget.profileModel.email,
                             style: TextStyle(
                               fontSize: 19.sp,
                               color: Colors.white,
@@ -274,7 +372,7 @@ class ProfilePage extends StatelessWidget {
 
                         Center(
                           child: Text(
-                            profileModel.committee,
+                            widget.profileModel.committee,
 
                             style: TextStyle(
                               fontSize: 19.sp,
@@ -318,7 +416,7 @@ class ProfilePage extends StatelessWidget {
                         SizedBox(height: 5.h),
                         Center(
                           child: Text(
-                            profileModel.phoneNumber,
+                            widget.profileModel.phoneNumber,
                             style: TextStyle(
                               fontSize: 19.sp,
                               color: Colors.white,
@@ -361,7 +459,7 @@ class ProfilePage extends StatelessWidget {
                                 children: [
                                   Text(
                                     textAlign: TextAlign.center,
-                                    (profileModel.verified
+                                    (widget.profileModel.verified
                                         ? "Verified"
                                         : "Not Verified"),
                                     style: TextStyle(
@@ -373,7 +471,7 @@ class ProfilePage extends StatelessWidget {
                                   ),
                                   SizedBox(width: 5.w),
                                   Icon(
-                                    (profileModel.verified
+                                    (widget.profileModel.verified
                                         ? Icons.verified
                                         : Icons.cancel),
                                     color: Colors.white,

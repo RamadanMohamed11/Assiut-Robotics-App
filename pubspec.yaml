@@ -44,6 +44,8 @@ dependencies:
   awesome_dialog: ^3.2.1
   curved_navigation_bar: ^1.0.6
   cached_network_image: ^3.4.1
+  image_picker: ^1.1.2
+  http_parser: ^4.1.2
 
 flutter_icons:
   android: true
@@ -97,6 +99,15 @@ flutter:
     - family: AR Baghdad Font
       fonts:
         - asset: assets/fonts/AR Baghdad Font.otf
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope/Manrope-Regular.ttf
+        - asset: assets/fonts/Manrope/Manrope-Bold.ttf
+        - asset: assets/fonts/Manrope/Manrope-ExtraBold.ttf
+        - asset: assets/fonts/Manrope/Manrope-Medium.ttf
+        - asset: assets/fonts/Manrope/Manrope-SemiBold.ttf
+        - asset: assets/fonts/Manrope/Manrope-Light.ttf
+        - asset: assets/fonts/Manrope/Manrope-ExtraLight.ttf
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

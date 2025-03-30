@@ -11,6 +11,7 @@ class CustomTextField extends StatefulWidget {
     this.isNumber = false,
     this.isPassword = false,
     this.isComponentPage = false,
+    this.isRoundedBorder = false,
   });
 
   final TextEditingController controller;
@@ -19,6 +20,7 @@ class CustomTextField extends StatefulWidget {
   final bool isNumber;
   final bool isPassword;
   final bool isComponentPage;
+  final bool isRoundedBorder;
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
@@ -29,52 +31,80 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: widget.controller,
-      keyboardType:
-          widget.isEmail
-              ? TextInputType.emailAddress
-              : (widget.isNumber ? TextInputType.number : TextInputType.text),
-      obscureText: isObscure && widget.isPassword,
+    return SizedBox(
+      height: widget.isRoundedBorder ? 40.h : null,
+      child: TextField(
+        controller: widget.controller,
+        keyboardType:
+            widget.isEmail
+                ? TextInputType.emailAddress
+                : (widget.isNumber ? TextInputType.number : TextInputType.text),
+        obscureText: isObscure && widget.isPassword,
 
-      style: TextStyle(
-        color: widget.isComponentPage ? kPrimarycolor2 : Colors.white,
-        fontSize: 21.sp,
-      ),
-      decoration: InputDecoration(
-        suffixIcon:
-            widget.isPassword
-                ? IconButton(
-                  onPressed: () {
-                    setState(() {
-                      isObscure = !isObscure;
-                    });
-                  },
-                  icon: Icon(
-                    isObscure ? Icons.visibility : Icons.visibility_off,
-                    color: Colors.white,
-                    size: 24.sp,
-                  ),
-                )
-                : null,
-        hintText: widget.hintText,
-        hintStyle: TextStyle(
-          fontWeight: FontWeight.bold,
+        style: TextStyle(
           color: widget.isComponentPage ? kPrimarycolor2 : Colors.white,
-          fontFamily:
-              widget.isComponentPage ? "AR Baghdad Font" : "InkBrushArabic",
-          fontSize: 25.sp,
+          fontSize: 21.sp,
         ),
-        enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(
-            color: widget.isComponentPage ? kPrimarycolor2 : Colors.white,
-            width: 2.w,
+        decoration: InputDecoration(
+          suffixIcon:
+              widget.isPassword
+                  ? IconButton(
+                    onPressed: () {
+                      setState(() {
+                        isObscure = !isObscure;
+                      });
+                    },
+                    icon: Icon(
+                      isObscure ? Icons.visibility : Icons.visibility_off,
+                      color: Colors.white,
+                      size: 24.sp,
+                    ),
+                  )
+                  : null,
+          hintText: widget.hintText,
+          hintStyle: TextStyle(
+            fontWeight: FontWeight.bold,
+            color:
+                widget.isComponentPage
+                    ? (widget.isRoundedBorder ? Colors.grey : kPrimarycolor2)
+                    : Colors.white,
+            fontFamily: widget.isComponentPage ? "Manrope" : "InkBrushArabic",
+            fontSize: 18.sp,
           ),
-        ),
-        focusedBorder: UnderlineInputBorder(
-          borderSide: BorderSide(
-            color: widget.isComponentPage ? kPrimarycolor2 : Colors.white,
-          ),
+          alignLabelWithHint: widget.isRoundedBorder ? false : true,
+          contentPadding:
+              widget.isRoundedBorder
+                  ? EdgeInsets.symmetric(vertical: 10.h, horizontal: 10.w)
+                  : null,
+          enabledBorder:
+              widget.isRoundedBorder
+                  ? OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.r),
+                    borderSide: BorderSide(color: kPrimarycolor2, width: 1.w),
+                  )
+                  : UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color:
+                          widget.isComponentPage
+                              ? kPrimarycolor2
+                              : Colors.white,
+                      width: 1.w,
+                    ),
+                  ),
+          focusedBorder:
+              widget.isRoundedBorder
+                  ? OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.r),
+                    borderSide: BorderSide(color: kPrimarycolor2, width: 1.w),
+                  )
+                  : UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color:
+                          widget.isComponentPage
+                              ? kPrimarycolor2
+                              : Colors.white,
+                    ),
+                  ),
         ),
       ),
     );

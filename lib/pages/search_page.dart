@@ -3,14 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:robotics_app/colors.dart';
 import 'package:robotics_app/models/component_model.dart';
+import 'package:robotics_app/models/profile_model.dart';
 import 'package:robotics_app/services/get_component.dart';
 import 'package:robotics_app/widgets/component_widget.dart';
 import 'package:robotics_app/widgets/custom_text_field.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key, required this.token});
+  const SearchPage({super.key, required this.profileModel});
 
-  final String token;
+  final ProfileModel profileModel;
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -109,7 +110,7 @@ class _SearchPageState extends State<SearchPage> {
                     itemBuilder: (context, index) {
                       return ComponentWidget(
                         component: components[index],
-                        token: widget.token,
+                        profileModel: widget.profileModel,
                       );
                     },
                   );
