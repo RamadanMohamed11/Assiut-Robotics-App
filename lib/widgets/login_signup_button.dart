@@ -30,6 +30,7 @@ class CustomButton extends StatelessWidget {
         ),
         child: Text(
           text,
+          textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 28.sp,
             color: isLoginOrSignup ? kPrimarycolor1 : Colors.white,

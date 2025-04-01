@@ -75,9 +75,7 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ),
         backgroundColor: kPrimarycolor2,
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ), // Make back arrow white
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: EdgeInsets.all(8.sp),

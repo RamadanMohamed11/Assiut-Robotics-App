@@ -21,11 +21,6 @@ class RequestedComponentsPage extends StatefulWidget {
 
 class _RequestedComponentsPageState extends State<RequestedComponentsPage>
     with SingleTickerProviderStateMixin {
-  final ComponentModel component = ComponentModel(
-    componentID: "",
-    title: "",
-    image: "assets/images/Rob.png",
-  );
   bool isLoading = false;
 
   // Animation controller

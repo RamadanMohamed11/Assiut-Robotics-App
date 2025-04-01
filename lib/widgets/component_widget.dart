@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:robotics_app/colors.dart';
 import 'package:robotics_app/helper/show_dialog.dart';
+import 'package:robotics_app/helper/transitions.dart';
 import 'package:robotics_app/models/component_model.dart';
 import 'package:robotics_app/models/profile_model.dart';
+import 'package:robotics_app/pages/manage_component_page.dart';
 import 'package:robotics_app/services/delete_one_component.dart';
 import 'package:robotics_app/services/request_to_borrow.dart';
 
@@ -101,6 +103,18 @@ class _ComponentWidgetState extends State<ComponentWidget> {
                 if (direction == DismissDirection.startToEnd) {
                   // Handle edit action
                   // You can navigate to an edit screen or show an edit dialog
+                  Navigator.push(
+                    context,
+                    CustomSizeTransition(
+                      ManageComponentPage(
+                        token: widget.profileModel.token,
+                        component: widget.component,
+                        profileModel: widget.profileModel,
+                        isEdit: true,
+                      ),
+                      alignment: Alignment.centerRight,
+                    ),
+                  );
                   return false; // Prevent dismissal for edit
                 } else if (direction == DismissDirection.endToStart) {
                   // Handle delete action

@@ -19,10 +19,11 @@ class ComponentsPage extends StatefulWidget {
 
 class _ComponentsPageState extends State<ComponentsPage> {
   String selectedItem = "All";
-  String appBarTitle = "Components";
+  String appBarTitle = "All Components";
 
   void item1OnTap() {
     selectedItem = "All";
+    appBarTitle = "All Components";
     Navigator.pop(context);
     setState(() {});
   }
@@ -54,7 +55,10 @@ class _ComponentsPageState extends State<ComponentsPage> {
       "All": GetComponentPage(profileModel: widget.profileModel),
       "Requested": RequestedComponentsPage(token: widget.profileModel.token),
       "Borrowed": BorrowComponentPage(token: widget.profileModel.token),
-      "Manage": ManageComponentPage(token: widget.profileModel.token),
+      "Manage": ManageComponentPage(
+        token: widget.profileModel.token,
+        profileModel: widget.profileModel,
+      ),
     };
     void onPressedSearchIcon() {
       Navigator.push(
@@ -67,6 +71,7 @@ class _ComponentsPageState extends State<ComponentsPage> {
 
     return Scaffold(
       appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Padding(
           padding: EdgeInsets.only(bottom: 15.h),
           child: Text(

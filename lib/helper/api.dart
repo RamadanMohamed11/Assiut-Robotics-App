@@ -43,12 +43,16 @@ class API {
     required String url,
     @required Map<String, String>? body,
     @required String? token,
+    @required Map<String, String>? myHeaders,
   }) async {
     Map<String, String> headers = {
       "Content-Type": "application/x-www-form-urlencoded",
     };
     if (token != null) {
       headers.addAll({"Authorization": "Bearer $token"});
+    }
+    if (myHeaders != null) {
+      headers.addAll(myHeaders);
     }
     http.Response response = await http.post(
       Uri.parse(url),

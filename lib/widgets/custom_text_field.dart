@@ -32,7 +32,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: widget.isRoundedBorder ? 40.h : null,
+      height: widget.isRoundedBorder ? 45.h : null,
       child: TextField(
         controller: widget.controller,
         keyboardType:
