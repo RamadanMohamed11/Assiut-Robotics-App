@@ -8,7 +8,6 @@ import 'package:robotics_app/helper/transitions.dart';
 import 'package:robotics_app/models/add_component_model.dart';
 import 'package:robotics_app/models/component_model.dart';
 import 'package:robotics_app/models/profile_model.dart';
-import 'package:robotics_app/pages/components_page.dart';
 import 'package:robotics_app/pages/home_page_after_login.dart';
 import 'package:robotics_app/services/add_component.dart';
 import 'package:robotics_app/services/update_component.dart';

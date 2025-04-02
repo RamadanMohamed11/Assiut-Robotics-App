@@ -5,7 +5,6 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:robotics_app/models/profile_model.dart';
 import 'package:robotics_app/pages/components_page.dart';
 import 'package:robotics_app/pages/profile_page.dart';
-import 'package:robotics_app/pages/tasks_page.dart';
 import 'package:robotics_app/pages/team_info_page.dart';
 
 class HomePageAfterLogin extends StatefulWidget {

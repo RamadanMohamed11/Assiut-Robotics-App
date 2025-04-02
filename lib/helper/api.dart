@@ -43,7 +43,6 @@ class API {
     required String url,
     @required Map<String, String>? body,
     @required String? token,
-    @required Map<String, String>? myHeaders,
   }) async {
     Map<String, String> headers = {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -51,9 +50,7 @@ class API {
     if (token != null) {
       headers.addAll({"Authorization": "Bearer $token"});
     }
-    if (myHeaders != null) {
-      headers.addAll(myHeaders);
-    }
+
     http.Response response = await http.post(
       Uri.parse(url),
       body: body,
@@ -61,6 +58,9 @@ class API {
     );
     print(response.statusCode);
     if (response.statusCode == 200) {
+      dynamic data = jsonDecode(response.body);
+      return data;
+    } else if (response.statusCode == 201) {
       dynamic data = jsonDecode(response.body);
       return data;
     } else if (response.statusCode == 400) {
