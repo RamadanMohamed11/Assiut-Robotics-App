@@ -9,8 +9,13 @@ import 'package:robotics_app/pages/tasks_page.dart';
 import 'package:robotics_app/pages/team_info_page.dart';
 
 class HomePageAfterLogin extends StatefulWidget {
-  const HomePageAfterLogin({super.key, required this.profileModel});
+  HomePageAfterLogin({
+    super.key,
+    required this.profileModel,
+    this.indexBegin = 0,
+  });
   final ProfileModel profileModel;
+  int indexBegin;
 
   @override
   State<HomePageAfterLogin> createState() => _HomePageAfterLoginState();
@@ -18,18 +23,29 @@ class HomePageAfterLogin extends StatefulWidget {
 
 class _HomePageAfterLoginState extends State<HomePageAfterLogin> {
   List<dynamic> pages = [];
-  int _page = 1;
+  int _page = 0;
   final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
+  void teamInfoMyProfileOnTap() {
+    _page = 1;
+    widget.indexBegin = 1;
+    setState(() {});
+  }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    if (widget.indexBegin != 0) {
+      _page = widget.indexBegin;
+    }
     pages = [
-      TeamInfoPage(),
+      TeamInfoPage(
+        profileModel: widget.profileModel,
+        myProfileOnTap: teamInfoMyProfileOnTap,
+      ),
       ProfilePage(profileModel: widget.profileModel),
-      // GetComponentPage(token: widget.profileModel.token!),
       ComponentsPage(profileModel: widget.profileModel),
-      TasksPage(),
+      // TasksPage(),
     ];
   }
 
@@ -38,7 +54,7 @@ class _HomePageAfterLoginState extends State<HomePageAfterLogin> {
     return Scaffold(
       bottomNavigationBar: CurvedNavigationBar(
         key: _bottomNavigationKey,
-        index: 1,
+        index: widget.indexBegin,
         items: <Widget>[
           Icon(Icons.home, size: 32.sp, color: Colors.white),
           Icon(Icons.person, size: 32.sp, color: Colors.white),
@@ -47,7 +63,7 @@ class _HomePageAfterLoginState extends State<HomePageAfterLogin> {
             size: 32.sp,
             color: Colors.white,
           ),
-          Icon(Icons.task_rounded, size: 32.sp, color: Colors.white),
+          // Icon(Icons.task_rounded, size: 32.sp, color: Colors.white),
         ],
         color: kPrimarycolor1,
         buttonBackgroundColor: kPrimarycolor2,
@@ -57,6 +73,7 @@ class _HomePageAfterLoginState extends State<HomePageAfterLogin> {
         onTap: (index) {
           setState(() {
             _page = index;
+            widget.indexBegin = index;
             print("Page: $_page");
           });
         },

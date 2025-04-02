@@ -202,6 +202,7 @@ class GetComponentPageState extends State<GetComponentPage>
                       controller:
                           _scrollController, // Attach the scroll controller
                       itemCount: paginatedComponents.length,
+                      physics: const BouncingScrollPhysics(),
                       itemBuilder: (context, index) {
                         return ComponentWidget(
                           component: paginatedComponents[index],

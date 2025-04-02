@@ -9,6 +9,7 @@ import 'package:robotics_app/models/add_component_model.dart';
 import 'package:robotics_app/models/component_model.dart';
 import 'package:robotics_app/models/profile_model.dart';
 import 'package:robotics_app/pages/components_page.dart';
+import 'package:robotics_app/pages/home_page_after_login.dart';
 import 'package:robotics_app/services/add_component.dart';
 import 'package:robotics_app/services/update_component.dart';
 import 'package:robotics_app/widgets/custom_text_field.dart';
@@ -99,12 +100,16 @@ class _ManageComponentPageState extends State<ManageComponentPage> {
         false,
         "Component added successfully!",
         btnOkOnPress: () {
-          Navigator.pushReplacement(
+          Navigator.pushAndRemoveUntil(
             context,
             CustomScaleTransition(
-              ComponentsPage(profileModel: widget.profileModel!),
+              HomePageAfterLogin(
+                profileModel: widget.profileModel!,
+                indexBegin: 2,
+              ),
               alignment: Alignment.bottomCenter,
             ),
+            (route) => false,
           );
         },
       );
@@ -135,13 +140,16 @@ class _ManageComponentPageState extends State<ManageComponentPage> {
         false,
         "Component updated successfully!",
         btnOkOnPress: () {
-          Navigator.pop(context);
-          Navigator.pushReplacement(
+          Navigator.pushAndRemoveUntil(
             context,
             CustomSizeTransition(
-              ComponentsPage(profileModel: widget.profileModel!),
+              HomePageAfterLogin(
+                profileModel: widget.profileModel!,
+                indexBegin: 2,
+              ),
               alignment: Alignment.centerLeft,
             ),
+            (route) => false,
           );
         },
       );

@@ -2,7 +2,6 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:robotics_app/colors.dart';
-import 'package:robotics_app/models/component_model.dart';
 import 'package:robotics_app/models/requested_component_model.dart';
 import 'package:robotics_app/services/get_requested_component.dart';
 import 'package:robotics_app/widgets/moving_logo.dart';
