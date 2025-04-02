@@ -2,14 +2,24 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:robotics_app/colors.dart';
+import 'package:robotics_app/helper/show_dialog.dart';
+import 'package:robotics_app/helper/transitions.dart';
 import 'package:robotics_app/models/announcement_model.dart';
+import 'package:robotics_app/models/profile_model.dart';
+import 'package:robotics_app/pages/add_announcement_page.dart';
+import 'package:robotics_app/services/delete_announcement.dart';
 import 'package:robotics_app/services/get_announcement.dart';
 import 'package:robotics_app/widgets/moving_logo.dart';
 import 'package:robotics_app/widgets/static_logo.dart';
 
 class AnnouncementsPage extends StatefulWidget {
-  const AnnouncementsPage({super.key});
-
+  const AnnouncementsPage({
+    super.key,
+    required this.index,
+    required this.profileModel,
+  });
+  final int index;
+  final ProfileModel profileModel;
   @override
   State<AnnouncementsPage> createState() => _AnnouncementsPageState();
 }
@@ -19,10 +29,14 @@ class _AnnouncementsPageState extends State<AnnouncementsPage>
   late AnimationController _animationController;
   late Animation<double> _animation;
   late AudioPlayer _audioPlayer;
+  late ScrollController _scrollController;
+
   bool isLoading = false;
+
   @override
   void initState() {
     super.initState();
+    print(widget.index);
     _audioPlayer = AudioPlayer();
     _animationController = AnimationController(
       vsync: this,
@@ -32,34 +46,36 @@ class _AnnouncementsPageState extends State<AnnouncementsPage>
     _animation = Tween<double>(begin: -50.0, end: 50.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-
-    // Listen to animation status changes
-    _animationController.addStatusListener((status) async {
-      if (status == AnimationStatus.reverse) {
-        await _audioPlayer.stop();
-      }
-      if (status == AnimationStatus.forward) {
-        if (isLoading == true) {
-          await _audioPlayer.setVolume(1.2);
-          await _audioPlayer.setPlaybackRate(1); // Increase speed (1.5x faster)
-          await _audioPlayer.play(AssetSource('sounds/peo.mp3'));
-        }
-      }
-    });
+    _scrollController = ScrollController();
   }
 
   @override
   void dispose() {
     _animationController.dispose();
     _audioPlayer.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToIndex() {
+    if (_scrollController.hasClients) {
+      // Calculate the offset based on the index and item width
+      double offset = widget.index * 285.w; // Adjust item width as needed
+      _scrollController.animateTo(
+        offset,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder<List<AnnouncementModel>>(
-        future: GetAnnouncement().getAnnouncement(),
+        future: GetAnnouncement().getAnnouncement(
+          committee: widget.profileModel.committee,
+        ),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -76,7 +92,6 @@ class _AnnouncementsPageState extends State<AnnouncementsPage>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   StaticLogo(isBlueLogo: true),
-
                   Text(
                     "No Announcements",
                     style: TextStyle(
@@ -91,6 +106,12 @@ class _AnnouncementsPageState extends State<AnnouncementsPage>
             );
           } else {
             List<AnnouncementModel> announcements = snapshot.data!;
+
+            // Scroll to the specified index after the ListView is built
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _scrollToIndex();
+            });
+
             return Column(
               children: [
                 SizedBox(height: 75.h),
@@ -110,13 +131,14 @@ class _AnnouncementsPageState extends State<AnnouncementsPage>
                 ),
                 Expanded(
                   child: ListView.builder(
+                    controller: _scrollController,
                     physics: const BouncingScrollPhysics(),
                     scrollDirection: Axis.horizontal,
                     itemCount: announcements.length,
                     itemBuilder:
                         (context, index) => AnnouncementWidget(
-                          title: announcements[index].title,
-                          content: announcements[index].content,
+                          announcement: announcements[index],
+                          profileModel: widget.profileModel,
                         ),
                   ),
                 ),
@@ -132,11 +154,11 @@ class _AnnouncementsPageState extends State<AnnouncementsPage>
 class AnnouncementWidget extends StatefulWidget {
   const AnnouncementWidget({
     super.key,
-    required this.title,
-    required this.content,
+    required this.announcement,
+    required this.profileModel,
   });
-  final String title;
-  final String content;
+  final AnnouncementModel announcement;
+  final ProfileModel profileModel;
   @override
   State<AnnouncementWidget> createState() => _AnnouncementWidgetState();
 }
@@ -144,14 +166,21 @@ class AnnouncementWidget extends StatefulWidget {
 class _AnnouncementWidgetState extends State<AnnouncementWidget> {
   @override
   Widget build(BuildContext context) {
-    return AnimCard(title: widget.title, content: widget.content);
+    return AnimCard(
+      announcement: widget.announcement,
+      profileModel: widget.profileModel,
+    );
   }
 }
 
 class AnimCard extends StatefulWidget {
-  const AnimCard({super.key, required this.title, required this.content});
-  final String title;
-  final String content;
+  const AnimCard({
+    super.key,
+    required this.announcement,
+    required this.profileModel,
+  });
+  final AnnouncementModel announcement;
+  final ProfileModel profileModel;
   @override
   State<AnimCard> createState() => _AnimCardState();
 }
@@ -170,12 +199,16 @@ class _AnimCardState extends State<AnimCard> {
             duration: Duration(milliseconds: 1000),
             curve: Curves.fastLinearToSlowEaseIn,
             child: Container(
-              child: CardItem(title: widget.title, content: widget.content, () {
-                setState(() {
-                  padding = padding == 0 ? 150.h : 0.h;
-                  bottomPadding = bottomPadding == 0 ? 150.h : 0.h;
-                });
-              }),
+              child: CardItem(
+                title: widget.announcement.title,
+                content: widget.announcement.content,
+                () {
+                  setState(() {
+                    padding = padding == 0 ? 150.h : 0.h;
+                    bottomPadding = bottomPadding == 0 ? 150.h : 0.h;
+                  });
+                },
+              ),
             ),
           ),
           Align(
@@ -196,7 +229,99 @@ class _AnimCardState extends State<AnimCard> {
                   bottom: Radius.circular(30.r),
                 ),
               ),
-              child: Center(child: StaticLogo(isBlueLogo: false)),
+              child: Center(
+                child:
+                    (widget.profileModel.role == "leader" ||
+                            widget.profileModel.role.contains("head"))
+                        ? Column(
+                          children: [
+                            StaticLogo(isBlueLogo: false),
+                            SizedBox(height: 20.h),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20.w),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  IconButton(
+                                    onPressed: () async {
+                                      showMessageDialog(
+                                        context,
+                                        false,
+                                        true,
+                                        "Are you sure you want to delete this announcement?",
+                                        btnOkOnPress: () async {
+                                          try {
+                                            await DeleteAnnouncement()
+                                                .deleteAnnouncement(
+                                                  widget.announcement.id,
+                                                );
+                                            showMessageDialog(
+                                              context,
+                                              true,
+                                              false,
+                                              "Announcement deleted successfully",
+                                              btnOkOnPress: () {
+                                                Navigator.pushReplacement(
+                                                  context,
+                                                  CustomSizeTransition(
+                                                    AnnouncementsPage(
+                                                      index: 0,
+                                                      profileModel:
+                                                          widget.profileModel,
+                                                    ),
+                                                    alignment:
+                                                        Alignment.centerRight,
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          } catch (e) {
+                                            showMessageDialog(
+                                              context,
+                                              false,
+                                              false,
+                                              "Failed to delete announcement: ${e.toString().replaceFirst('Exception: ', '')}",
+                                              btnOkOnPress: () {},
+                                            );
+                                          }
+                                        },
+                                      );
+                                    },
+                                    icon: Icon(
+                                      Icons.delete,
+                                      color: Colors.red,
+                                      size: 25.sp,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        CustomSizeTransition(
+                                          AddAnnouncementPage(
+                                            isEdit: true,
+                                            announcementModel:
+                                                widget.announcement,
+                                            profileModel: widget.profileModel,
+                                          ),
+                                          alignment: Alignment.centerRight,
+                                        ),
+                                      );
+                                    },
+                                    icon: Icon(
+                                      Icons.edit,
+                                      color: kOrangeColor,
+                                      size: 25.sp,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                        : StaticLogo(isBlueLogo: false),
+              ),
             ),
           ),
         ],
@@ -252,7 +377,7 @@ class CardItem extends StatelessWidget {
                 content,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 16.sp,
+                  fontSize: 17.sp,
                   fontWeight: FontWeight.w400,
                 ),
               ),

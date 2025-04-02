@@ -2,13 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:robotics_app/colors.dart';
 import 'package:robotics_app/helper/show_dialog.dart';
+import 'package:robotics_app/helper/transitions.dart';
+import 'package:robotics_app/models/announcement_model.dart';
+import 'package:robotics_app/models/profile_model.dart';
+import 'package:robotics_app/pages/home_page_after_login.dart';
 import 'package:robotics_app/services/add_announcement.dart';
+import 'package:robotics_app/services/edit_announcement.dart';
 import 'package:robotics_app/widgets/custom_text_field.dart';
 import 'package:robotics_app/widgets/static_logo.dart';
 
 class AddAnnouncementPage extends StatefulWidget {
-  const AddAnnouncementPage({super.key, required this.token});
-  final String token;
+  const AddAnnouncementPage({
+    super.key,
+    this.profileModel,
+    this.isEdit = false,
+    this.announcementModel,
+  });
+  final ProfileModel? profileModel;
+  final AnnouncementModel? announcementModel;
+  final bool isEdit;
   @override
   State<AddAnnouncementPage> createState() => _AddAnnouncementPageState();
 }
@@ -17,8 +29,18 @@ class _AddAnnouncementPageState extends State<AddAnnouncementPage> {
   final TextEditingController titleController = TextEditingController();
 
   final TextEditingController contentController = TextEditingController();
-
   DateTime? tempSelectedDate;
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isEdit) {
+      titleController.text = widget.announcementModel!.title;
+      contentController.text = widget.announcementModel!.content;
+      tempSelectedDate = DateTime.tryParse(
+        widget.announcementModel!.dateOfDelete,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +75,7 @@ class _AddAnnouncementPageState extends State<AddAnnouncementPage> {
                   isNumber: false,
                   isPassword: false,
                   isRoundedBorder: true,
+                  linesNumber: 3,
                 ),
                 SizedBox(height: 25.h),
 
@@ -118,22 +141,93 @@ class _AddAnnouncementPageState extends State<AddAnnouncementPage> {
 
                         ElevatedButton(
                           onPressed: () async {
-                            if (tempSelectedDate != null) {
+                            if (widget.isEdit == false) {
+                              if (tempSelectedDate != null) {
+                                try {
+                                  // Show success dialog
+                                  await AddAnnouncement().addAnnouncement(
+                                    title: titleController.text.trim(),
+                                    content: contentController.text.trim(),
+                                    dateOfDelete:
+                                        "${tempSelectedDate!.year}-${tempSelectedDate!.month.toString().padLeft(2, '0')}-${tempSelectedDate!.day.toString().padLeft(2, '0')}",
+                                    token: widget.profileModel!.token,
+                                  );
+                                  if (mounted) {
+                                    showMessageDialog(
+                                      context,
+                                      true,
+                                      false,
+                                      "Announcement added successfully",
+                                      btnOkOnPress: () {
+                                        Navigator.pushAndRemoveUntil(
+                                          context,
+                                          CustomScaleTransition(
+                                            HomePageAfterLogin(
+                                              profileModel:
+                                                  widget.profileModel!,
+                                              indexBegin: 0,
+                                            ),
+                                            alignment: Alignment.bottomCenter,
+                                          ),
+                                          (route) => false,
+                                        );
+                                      },
+                                    );
+                                  }
+                                } catch (e) {
+                                  // Show error dialog
+                                  if (mounted) {
+                                    showMessageDialog(
+                                      context,
+                                      false,
+                                      false,
+                                      "Failed to add announcement: ${e.toString().replaceFirst('Exception: ', '')}",
+                                      btnOkOnPress: () {},
+                                    );
+                                  }
+                                }
+                              } else {
+                                // Show a warning if no date is selected
+                                if (mounted) {
+                                  showMessageDialog(
+                                    context,
+                                    false,
+                                    false,
+                                    "Please select a date.",
+                                    btnOkOnPress: () {},
+                                  );
+                                }
+                              }
+                            } else {
                               try {
                                 // Show success dialog
-                                await AddAnnouncement().addAnnouncement(
+                                await EditAnnouncement().editAnnouncement(
                                   title: titleController.text.trim(),
                                   content: contentController.text.trim(),
                                   dateOfDelete:
                                       "${tempSelectedDate!.year}-${tempSelectedDate!.month.toString().padLeft(2, '0')}-${tempSelectedDate!.day.toString().padLeft(2, '0')}",
+                                  token: widget.profileModel!.token,
+                                  announcementId: widget.announcementModel!.id,
                                 );
                                 if (mounted) {
                                   showMessageDialog(
                                     context,
                                     true,
                                     false,
-                                    "Announcement added successfully",
-                                    btnOkOnPress: () {},
+                                    "Announcement updated successfully",
+                                    btnOkOnPress: () {
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        CustomScaleTransition(
+                                          HomePageAfterLogin(
+                                            profileModel: widget.profileModel!,
+                                            indexBegin: 0,
+                                          ),
+                                          alignment: Alignment.bottomCenter,
+                                        ),
+                                        (route) => false,
+                                      );
+                                    },
                                   );
                                 }
                               } catch (e) {
@@ -143,21 +237,10 @@ class _AddAnnouncementPageState extends State<AddAnnouncementPage> {
                                     context,
                                     false,
                                     false,
-                                    "Failed to add announcement: ${e.toString().replaceFirst('Exception: ', '')}",
+                                    "Failed to edit announcement: ${e.toString().replaceFirst('Exception: ', '')}",
                                     btnOkOnPress: () {},
                                   );
                                 }
-                              }
-                            } else {
-                              // Show a warning if no date is selected
-                              if (mounted) {
-                                showMessageDialog(
-                                  context,
-                                  false,
-                                  false,
-                                  "Please select a date.",
-                                  btnOkOnPress: () {},
-                                );
                               }
                             }
                           },
@@ -168,7 +251,7 @@ class _AddAnnouncementPageState extends State<AddAnnouncementPage> {
                             ),
                           ),
                           child: Text(
-                            "Submit",
+                            widget.isEdit ? "Edit" : "Submit",
                             style: TextStyle(
                               fontSize: 24.sp,
                               color: Colors.white,

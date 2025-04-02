@@ -1,17 +1,18 @@
 import 'package:robotics_app/helper/api.dart';
 
-class AddAnnouncement {
-  Future<Map<String, dynamic>> addAnnouncement({
+class EditAnnouncement {
+  Future<void> editAnnouncement({
+    required String announcementId,
     required String title,
     required String content,
     required String dateOfDelete,
     required String token,
   }) async {
-    final dynamic data = await API().post(
-      url: 'https://assiut-robotics-zeta.vercel.app/announcement/add',
+    await API().put(
+      url:
+          'https://assiut-robotics-zeta.vercel.app/announcement/$announcementId',
       body: {'title': title, 'content': content, 'dateOfDelete': dateOfDelete},
       token: token,
     );
-    return data;
   }
 }

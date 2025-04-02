@@ -123,7 +123,7 @@ class _ComponentWidgetState extends State<ComponentWidget> {
                     builder:
                         (context) => AlertDialog(
                           title: Text(
-                            'Delete Subject',
+                            'Delete Component',
                             style: TextStyle(
                               color: Colors.red,
                               fontSize: 22.sp,
@@ -131,7 +131,7 @@ class _ComponentWidgetState extends State<ComponentWidget> {
                             ),
                           ),
                           content: Text(
-                            'Are you sure you want to delete this subject?',
+                            'Are you sure you want to delete this Component?',
                             style: TextStyle(fontSize: 19.sp),
                           ),
                           actions: [

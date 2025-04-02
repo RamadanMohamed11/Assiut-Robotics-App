@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +30,11 @@ class _TeamInfoPageState extends State<TeamInfoPage>
   late Animation<double> _animation;
   late AudioPlayer _audioPlayer;
   bool isLoading = false;
+  late PageController _pageController;
+  Timer? _timer;
+  int _currentPage = 0;
+  List<AnnouncementModel> announcements = [];
+
   @override
   void initState() {
     super.initState();
@@ -55,12 +61,31 @@ class _TeamInfoPageState extends State<TeamInfoPage>
         }
       }
     });
+
+    _pageController = PageController(initialPage: 0);
+
+    // Start a timer to change the page every 5 seconds
+    _timer = Timer.periodic(Duration(seconds: 5), (Timer timer) {
+      if (_pageController.hasClients) {
+        _currentPage++;
+        if (_currentPage >= announcements.length) {
+          _currentPage = 0; // Loop back to the first page
+        }
+        _pageController.animateToPage(
+          _currentPage,
+          duration: Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   @override
   void dispose() {
     _animationController.dispose();
     _audioPlayer.dispose();
+    _timer?.cancel();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -181,7 +206,9 @@ class _TeamInfoPageState extends State<TeamInfoPage>
                       ),
                       SizedBox(height: 10.h),
                       FutureBuilder<List<AnnouncementModel>>(
-                        future: GetAnnouncement().getAnnouncement(),
+                        future: GetAnnouncement().getAnnouncement(
+                          committee: widget.profileModel.committee,
+                        ),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
@@ -232,158 +259,252 @@ class _TeamInfoPageState extends State<TeamInfoPage>
                                     ),
                                   ),
                                 ),
-                                IconButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      CustomScaleTransition(
-                                        AddAnnouncementPage(
-                                          token: widget.profileModel.token,
-                                        ),
-                                        alignment: Alignment.centerLeft,
-                                      ),
-                                    );
-                                  },
-                                  icon: Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: kOrangeColor,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withAlpha(
-                                            (0.1 * 255).toInt(),
+                                widget.profileModel.role == "leader" ||
+                                        widget.profileModel.role.contains(
+                                          "head",
+                                        )
+                                    ? IconButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          CustomScaleTransition(
+                                            AddAnnouncementPage(
+                                              profileModel: widget.profileModel,
+                                            ),
+                                            alignment: Alignment.centerLeft,
                                           ),
-                                          blurRadius: 10.r,
-                                          spreadRadius: 2.r,
+                                        );
+                                      },
+                                      icon: Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: kOrangeColor,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withAlpha(
+                                                (0.1 * 255).toInt(),
+                                              ),
+                                              blurRadius: 10.r,
+                                              spreadRadius: 2.r,
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                    child: Icon(
-                                      Icons.add,
-                                      color: Colors.white,
-                                      size: 30.sp,
-                                    ),
-                                  ),
-                                ),
+                                        child: Icon(
+                                          Icons.add,
+                                          color: Colors.white,
+                                          size: 30.sp,
+                                        ),
+                                      ),
+                                    )
+                                    : SizedBox(),
                               ],
                             );
                           } else {
-                            List<AnnouncementModel> announcements =
-                                snapshot.data!;
+                            announcements = snapshot.data!;
                             return Stack(
-                              alignment: Alignment.topLeft,
+                              alignment: Alignment.center,
                               children: [
+                                // Announcements Container with PageView
                                 Padding(
                                   padding: EdgeInsets.all(16.sp),
                                   child: SizedBox(
-                                    child: Container(
-                                      padding: EdgeInsets.all(10.sp),
-                                      margin: EdgeInsets.symmetric(
-                                        vertical: 5.h,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withAlpha(
-                                          (0.1 * 255).toInt(),
-                                        ),
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(5.r),
-                                        ),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            announcements[0].title,
-                                            style: TextStyle(
-                                              fontSize: 20.sp,
-                                              fontWeight: FontWeight.bold,
+                                    height: 150.h,
+                                    child: PageView.builder(
+                                      controller: _pageController,
+                                      itemCount: announcements.length,
+                                      itemBuilder: (context, index) {
+                                        return Container(
+                                          padding: EdgeInsets.all(10.sp),
+                                          margin: EdgeInsets.symmetric(
+                                            vertical: 5.h,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withAlpha(
+                                              (0.1 * 255).toInt(),
+                                            ),
+                                            borderRadius: BorderRadius.all(
+                                              Radius.circular(5.r),
                                             ),
                                           ),
-                                          Row(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
-                                              Expanded(
-                                                child: Text(
-                                                  announcements[0].content,
-                                                  style: TextStyle(
-                                                    fontSize: 13.sp,
-                                                  ),
+                                              Text(
+                                                announcements[index].title,
+                                                style: TextStyle(
+                                                  fontSize: 20.sp,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
                                               ),
-                                              IconButton(
-                                                onPressed: () {
-                                                  Navigator.push(
-                                                    context,
-                                                    CustomScaleTransition(
-                                                      AnnouncementsPage(),
-                                                      alignment:
-                                                          Alignment.centerRight,
-                                                    ),
-                                                  );
-                                                },
-                                                icon: Container(
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    color: kOrangeColor,
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: Colors.black
-                                                            .withAlpha(
-                                                              (0.1 * 255)
-                                                                  .toInt(),
-                                                            ),
-                                                        blurRadius: 10.r,
-                                                        spreadRadius: 2.r,
+                                              SizedBox(height: 10.h),
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      announcements[index]
+                                                          .content,
+                                                      style: TextStyle(
+                                                        fontSize: 13.sp,
                                                       ),
-                                                    ],
+                                                    ),
                                                   ),
-                                                  child: Icon(
-                                                    Icons.arrow_forward,
-                                                    color: Colors.white,
-                                                    size: 30.sp,
+                                                  IconButton(
+                                                    onPressed: () {
+                                                      Navigator.push(
+                                                        context,
+                                                        CustomScaleTransition(
+                                                          AnnouncementsPage(
+                                                            index: index,
+                                                            profileModel:
+                                                                widget
+                                                                    .profileModel,
+                                                          ),
+                                                          alignment:
+                                                              Alignment
+                                                                  .centerRight,
+                                                        ),
+                                                      );
+                                                    },
+                                                    icon: Container(
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        color: kOrangeColor,
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Colors.black
+                                                                .withAlpha(
+                                                                  (0.1 * 255)
+                                                                      .toInt(),
+                                                                ),
+                                                            blurRadius: 10.r,
+                                                            spreadRadius: 2.r,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.arrow_forward,
+                                                        color: Colors.white,
+                                                        size: 30.sp,
+                                                      ),
+                                                    ),
                                                   ),
-                                                ),
+                                                ],
                                               ),
                                             ],
                                           ),
-                                        ],
-                                      ),
+                                        );
+                                      },
                                     ),
                                   ),
                                 ),
-                                IconButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      CustomScaleTransition(
-                                        AddAnnouncementPage(
-                                          token: widget.profileModel.token,
-                                        ),
-                                        alignment: Alignment.centerLeft,
-                                      ),
-                                    );
-                                  },
-                                  icon: Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: kOrangeColor,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withAlpha(
-                                            (0.1 * 255).toInt(),
+
+                                // Left Arrow (Fixed Position)
+                                Positioned(
+                                  bottom: 15.h,
+                                  left: 10.w,
+                                  child: IconButton(
+                                    onPressed: () {
+                                      if (_currentPage > 0) {
+                                        _currentPage--;
+                                        _pageController.animateToPage(
+                                          _currentPage,
+                                          duration: Duration(milliseconds: 500),
+                                          curve: Curves.easeInOut,
+                                        );
+                                      } else if (_currentPage == 0) {
+                                        _currentPage = announcements.length - 1;
+                                        _pageController.animateToPage(
+                                          _currentPage,
+                                          duration: Duration(milliseconds: 500),
+                                          curve: Curves.easeInOut,
+                                        );
+                                      }
+                                    },
+                                    icon: Icon(
+                                      Icons.keyboard_arrow_left_sharp,
+                                      color: kPrimarycolor1,
+                                      size: 35.sp,
+                                    ),
+                                  ),
+                                ),
+
+                                // Right Arrow (Fixed Position)
+                                Positioned(
+                                  bottom: 15.h,
+                                  right: 10.w,
+                                  child: IconButton(
+                                    onPressed: () {
+                                      if (_currentPage <
+                                          announcements.length - 1) {
+                                        _currentPage++;
+                                        _pageController.animateToPage(
+                                          _currentPage,
+                                          duration: Duration(milliseconds: 500),
+                                          curve: Curves.easeInOut,
+                                        );
+                                      } else if (_currentPage ==
+                                          announcements.length - 1) {
+                                        _currentPage = 0;
+                                        _pageController.animateToPage(
+                                          _currentPage,
+                                          duration: Duration(milliseconds: 500),
+                                          curve: Curves.easeInOut,
+                                        );
+                                      }
+                                    },
+                                    icon: Icon(
+                                      Icons.keyboard_arrow_right_sharp,
+                                      color: kPrimarycolor1,
+                                      size: 35.sp,
+                                    ),
+                                  ),
+                                ),
+
+                                // Add Icon (Inside the Announcement Container)
+                                (widget.profileModel.role == 'leader' ||
+                                        widget.profileModel.role.contains(
+                                          "head",
+                                        ))
+                                    ? Positioned(
+                                      top: 0,
+                                      left: 0,
+                                      child: IconButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            CustomScaleTransition(
+                                              AddAnnouncementPage(
+                                                profileModel:
+                                                    widget.profileModel,
+                                              ),
+                                              alignment: Alignment.centerLeft,
+                                            ),
+                                          );
+                                        },
+                                        icon: Container(
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: kOrangeColor,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withAlpha(
+                                                  (0.1 * 255).toInt(),
+                                                ),
+                                                blurRadius: 10.r,
+                                                spreadRadius: 2.r,
+                                              ),
+                                            ],
                                           ),
-                                          blurRadius: 10.r,
-                                          spreadRadius: 2.r,
+                                          child: Icon(
+                                            Icons.add,
+                                            color: Colors.white,
+                                            size: 30.sp,
+                                          ),
                                         ),
-                                      ],
-                                    ),
-                                    child: Icon(
-                                      Icons.add,
-                                      color: Colors.white,
-                                      size: 30.sp,
-                                    ),
-                                  ),
-                                ),
+                                      ),
+                                    )
+                                    : SizedBox(),
                               ],
                             );
                           }

@@ -12,6 +12,7 @@ class CustomTextField extends StatefulWidget {
     this.isPassword = false,
     this.isComponentPage = false,
     this.isRoundedBorder = false,
+    this.linesNumber = 1,
   });
 
   final TextEditingController controller;
@@ -21,6 +22,7 @@ class CustomTextField extends StatefulWidget {
   final bool isPassword;
   final bool isComponentPage;
   final bool isRoundedBorder;
+  final int linesNumber;
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
@@ -32,8 +34,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: widget.isRoundedBorder ? 45.h : null,
+      height: (widget.isRoundedBorder && widget.linesNumber == 1) ? 45.h : null,
       child: TextField(
+        maxLines: widget.linesNumber,
+
         controller: widget.controller,
         keyboardType:
             widget.isEmail

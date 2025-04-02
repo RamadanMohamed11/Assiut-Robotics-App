@@ -39,6 +39,24 @@ class API {
     }
   }
 
+  Future<dynamic> delete({required String url, String? token}) async {
+    Map<String, String> headers = {"Content-Type": "application/json"};
+    if (token != null) {
+      headers.addAll({"Authorization": "Bearer $token"});
+    }
+    http.Response response = await http.delete(
+      Uri.parse(url),
+      headers: headers,
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception(
+        'There is an error in fetching data ${response.statusCode}',
+      );
+    }
+  }
+
   Future<dynamic> post({
     required String url,
     @required Map<String, String>? body,

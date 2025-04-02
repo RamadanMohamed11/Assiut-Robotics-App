@@ -327,11 +327,12 @@ class _RegisterPageState extends State<RegisterPage>
                                       [
                                         "HR",
                                         "PR",
-                                        "Marketing",
-                                        "Media",
-                                        "AC Electrical",
-                                        "AC Mechanical",
                                         "OC",
+                                        "web",
+                                        "media",
+                                        "Marketing",
+                                        "AC_electric",
+                                        "AC_mechanic",
                                       ].map((String value) {
                                         return DropdownMenuItem<String>(
                                           value: value,
